@@ -1,0 +1,7 @@
+{
+  "name": "NAVA",
+  "description": "Build things from the real world. Scan what you have, tell the system what you want to build, and get clear steps to make it real.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
