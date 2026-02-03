@@ -1,9 +1,15 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { PlanData, Difficulty } from "../types";
+import { PlanData } from "../types";
 
 // Always use a fresh instance to ensure latest API key
 const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+// Helper to strip Markdown code blocks from JSON responses
+const cleanJSON = (text: string): string => {
+  if (!text) return "[]";
+  return text.replace(/```json\s*|\s*```/g, '').trim();
+};
 
 /**
  * Advanced Image Processing: Optimized for high-fidelity vision ingestion.
@@ -142,9 +148,11 @@ export const generateSuggestions = async (objectName: string, scannedImage: stri
   });
 
   try {
-    const suggestions = JSON.parse(response.text || "[]");
+    const text = cleanJSON(response.text || "[]");
+    const suggestions = JSON.parse(text);
     return suggestions.length > 0 ? suggestions : ["Quick Start", "Skill Builder", "Advanced Build", "Expert Project"];
   } catch (e) {
+    console.error("Failed to parse suggestions:", e);
     return ["Quick Fix", "Improvement", "New Project", "Complex Build"];
   }
 };
@@ -242,7 +250,8 @@ export const generateCustomPlan = async (
     }
   });
 
-  return JSON.parse(response.text || "{}") as PlanData;
+  const text = cleanJSON(response.text || "{}");
+  return JSON.parse(text) as PlanData;
 };
 
 export const verifyStepCompletion = async (
@@ -284,16 +293,8 @@ export const verifyStepCompletion = async (
     }
   });
 
-  return JSON.parse(response.text || '{"success":false, "feedback":"Please show me the work clearly."}');
-};
-
-export const getTroubleshootingHelp = async (project: string, step: string, issue: string): Promise<string> => {
-  const ai = getAI();
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
-    contents: [{ text: `Project: "${project}". Step: "${step}". User Issue: "${issue}". Provide a direct, actionable fix in 2 sentences max.` }]
-  });
-  return response.text?.trim() || "Try it again carefully.";
+  const text = cleanJSON(response.text || '{"success":false, "feedback":"Please show me the work clearly."}');
+  return JSON.parse(text);
 };
 
 export const askStepQuestion = async (project: string, stepTitle: string, stepInstruction: string, question: string): Promise<string> => {

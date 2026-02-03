@@ -1,13 +1,16 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { Camera, Upload, Sparkles, ArrowRight, ScanLine, Layers, Command, ShieldCheck, Cpu, Target, Check, X, Box, Zap, Lightbulb, Wrench } from 'lucide-react';
+import { UserProfile } from '../types';
 
 interface LandingPageProps {
   onStart: () => void;
   onUpload: (imageSrc: string) => void;
+  user?: UserProfile | null;
+  onProfileClick?: () => void;
 }
 
-// --- Abstract Background Components (Reverted to Colorful Gradients) ---
+// --- Abstract Background Components (Colorful Gradients) ---
 
 const AbstractReuse = () => (
   <div className="absolute inset-0 overflow-hidden bg-[#F0FDF4]" aria-hidden="true">
@@ -49,7 +52,7 @@ const AbstractFixBuild = () => (
   </div>
 );
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onStart, onUpload }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onStart, onUpload, user, onProfileClick }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [scrolled, setScrolled] = useState(false);
 
@@ -93,16 +96,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart, onUpload }) =
                </div>
             </div>
             
-            <button 
-                onClick={onStart}
-                aria-label="Start App"
-                className={`group relative overflow-hidden bg-[#1A73E8] text-white px-7 py-3.5 rounded-full text-sm font-medium hover:shadow-lg transition-all duration-300 active:scale-95 ${scrolled ? 'mr-0' : ''}`}
-            >
-                <span className="relative z-10 flex items-center gap-2">
-                    Start <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" aria-hidden="true" />
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-[#4285F4] via-[#1A73E8] to-[#0B57D0] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            </button>
+            <div className="flex items-center gap-4">
+                {user && (
+                    <button 
+                        onClick={onProfileClick}
+                        className={`w-10 h-10 rounded-full ${user.color} flex items-center justify-center text-white font-bold shadow-md hover:scale-105 transition-transform`}
+                        aria-label="View Profile"
+                    >
+                        {user.name.charAt(0)}
+                    </button>
+                )}
+                <button 
+                    onClick={onStart}
+                    aria-label="Start App"
+                    className={`group relative overflow-hidden bg-[#1A73E8] text-white px-7 py-3.5 rounded-full text-sm font-medium hover:shadow-lg transition-all duration-300 active:scale-95 ${scrolled ? 'mr-0' : ''}`}
+                >
+                    <span className="relative z-10 flex items-center gap-2">
+                        {user ? 'New Project' : 'Join / Start'} <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#4285F4] via-[#1A73E8] to-[#0B57D0] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                </button>
+            </div>
         </div>
       </nav>
 
@@ -126,9 +140,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart, onUpload }) =
                   <span className="gemini-gradient-text">with NAVA.</span>
               </h1>
               
-              <div className="flex flex-col items-center gap-12 animate-fade-up opacity-0 max-w-3xl mx-auto" style={{ animationDelay: '0.4s' }}>
+              <div className="flex flex-col items-center gap-12 animate-fade-up opacity-0 max-w-4xl mx-auto" style={{ animationDelay: '0.4s' }}>
                   <p className="text-2xl md:text-3xl text-[#444746] font-normal leading-relaxed tracking-tight">
-                      Turn your "what if" into "here it is." Just scan what you have. We’ll provide the ideas and the guidance to finish.
+                      From idea to execution. Upload ideas or references. Choose how to build. NAVA guides you.
                   </p>
 
                   <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
@@ -348,7 +362,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart, onUpload }) =
             
             <div className={containerClass + " relative z-10"}>
                 <h2 id="start-section-title" className="text-5xl md:text-8xl font-display font-medium mb-20 text-center tracking-tighter text-[#1F1F1F]">
-                    Let's get<br/>started
+                    From Idea<br/>to Execution
                 </h2>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

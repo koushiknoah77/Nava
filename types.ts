@@ -1,6 +1,8 @@
 
 export enum AppView {
   LANDING = 'LANDING',
+  AUTH = 'AUTH',                   // New: Sign up screen
+  PROFILE = 'PROFILE',             // New: User history
   CAMERA = 'CAMERA',
   ANALYZING = 'ANALYZING',
   INTENT_SELECT = 'INTENT_SELECT', // Command Center
@@ -27,6 +29,25 @@ export enum AnalysisType {
   AUDIT = 'AUDIT',
   REPAIR = 'REPAIR',
   AUGMENT = 'AUGMENT',
+}
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;     // Added
+  country: string;   // Added
+  skillLevel: SkillLevel;
+  joinedDate: string;
+  color: string;
+}
+
+export interface ProjectHistory {
+  id: string;
+  title: string;
+  date: string;
+  thumbnail?: string;
+  status: 'In Progress' | 'Completed';
+  difficulty: string;
 }
 
 export interface Directive {
@@ -98,4 +119,5 @@ export interface AppState {
   objectName?: string;
   planData?: PlanData | null;
   guideData?: GuideData | null;
+  user?: UserProfile | null;
 }
