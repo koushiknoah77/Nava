@@ -37,7 +37,9 @@ const AppContent: React.FC = () => {
     // This listener handles the initial page load and any auth changes
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
-        setIsAuthChecking(true);
+        // We do NOT set setIsAuthChecking(true) here. 
+        // Setting it to true would cause the App to render the loading spinner, 
+        // unmounting the Auth component while the user is trying to log in.
         
         if (firebaseUser) {
           // If logged in, verify email status

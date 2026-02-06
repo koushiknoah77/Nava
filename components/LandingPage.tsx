@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import { Camera, Upload, Sparkles, ArrowRight, ScanLine, Layers, Command, ShieldCheck, Cpu, Target, Check, X, Box, Zap, Lightbulb, Wrench } from 'lucide-react';
 import { UserProfile } from '../types';
@@ -57,7 +56,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart, onUpload, use
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 10);
+    const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -78,37 +77,40 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart, onUpload, use
   return (
     <div className="min-h-screen bg-white font-sans selection:bg-[#4285F4] selection:text-white overflow-x-hidden relative text-[#1F1F1F]">
       
+      {/* Background Ambience */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10" aria-hidden="true">
           <div className="absolute top-[-10%] left-[-5%] w-[40vw] h-[40vw] rounded-full bg-gradient-to-br from-[#E8F0FE]/40 to-transparent blur-[120px] opacity-60"></div>
           <div className="absolute bottom-[-10%] right-[-5%] w-[30vw] h-[30vw] rounded-full bg-gradient-to-tl from-[#FCE8E6]/40 to-transparent blur-[100px] opacity-60"></div>
       </div>
 
-      <nav aria-label="Main Navigation" className={`fixed top-0 w-full z-50 transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)] pointer-events-none flex justify-center ${scrolled ? 'pt-4' : 'pt-8'}`}>
-        <div className={`pointer-events-auto transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)] flex items-center justify-between ${
-            scrolled 
-            ? 'w-[calc(100%-2rem)] max-w-[1000px] bg-white/70 backdrop-blur-xl shadow-premium border border-white/50 rounded-full px-5 py-3 mx-4' 
-            : 'w-full max-w-[1440px] px-6 md:px-12 bg-transparent border-transparent'
-        }`}>
+      {/* Floating Pill Navigation */}
+      <nav 
+        aria-label="Main Navigation" 
+        className="fixed top-6 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none"
+      >
+        <div className={`pointer-events-auto flex items-center justify-between w-full max-w-[1000px] bg-white/70 backdrop-blur-xl border border-[#E3E3E3] rounded-full px-5 py-3 shadow-sm transition-all duration-300 ${scrolled ? 'bg-white/90 shadow-md scale-[0.99]' : ''}`}>
+            
             {/* Logo Section */}
-            <div className="flex items-center gap-3">
-               <div className="w-10 h-10 bg-[#1F1F1F] rounded-full flex items-center justify-center text-white shadow-md shrink-0" aria-hidden="true">
-                   <Sparkles size={18} fill="currentColor" />
+            <div className="flex items-center gap-3 pl-1">
+               <div className="w-9 h-9 bg-[#1F1F1F] rounded-full flex items-center justify-center text-white shadow-md shrink-0" aria-hidden="true">
+                   <Sparkles size={16} fill="currentColor" />
                </div>
                <div className="flex flex-col">
-                   <span className="text-xl font-display font-medium text-[#1F1F1F] tracking-tight leading-none">NAVA</span>
-                   <span className={`text-[10px] font-mono font-medium uppercase tracking-widest text-[#5E5E5E] leading-none mt-1 transition-all duration-300 ${scrolled ? 'h-0 opacity-0 overflow-hidden' : 'h-auto opacity-100'}`}>
+                   <span className="text-lg font-display font-medium text-[#1F1F1F] tracking-tight leading-none">NAVA</span>
+                   <span className="text-[9px] font-mono font-medium uppercase tracking-widest text-[#5E5E5E] leading-none mt-1">
                        AI Assistant
                    </span>
                </div>
             </div>
             
             {/* Actions Section */}
-            <div className="flex items-center gap-3 md:gap-4 pl-4">
+            <div className="flex items-center gap-2 pr-1">
                 {user && (
                     <button 
                         onClick={onProfileClick}
-                        className={`w-10 h-10 rounded-full ${user.color} flex items-center justify-center text-white font-bold shadow-md hover:scale-105 transition-transform`}
+                        className={`w-9 h-9 rounded-full ${user.color} flex items-center justify-center text-white font-bold shadow-sm hover:scale-105 transition-transform ring-2 ring-white border border-gray-100`}
                         aria-label="View Profile"
+                        title={user.name}
                     >
                         {user.name.charAt(0)}
                     </button>
@@ -116,7 +118,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart, onUpload, use
                 <button 
                     onClick={onStart}
                     aria-label="Start App"
-                    className={`group relative overflow-hidden bg-[#1A73E8] text-white px-6 py-2.5 rounded-full text-sm font-medium hover:shadow-lg transition-all duration-300 active:scale-95 whitespace-nowrap`}
+                    className={`group relative overflow-hidden bg-[#1A73E8] text-white px-5 py-2 rounded-full text-sm font-medium hover:shadow-lg transition-all duration-300 active:scale-95 whitespace-nowrap`}
                 >
                     <span className="relative z-10 flex items-center gap-2">
                         {user ? 'New Project' : 'Join / Start'} <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" aria-hidden="true" />
@@ -127,7 +129,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart, onUpload, use
         </div>
       </nav>
 
-      <section className={`relative min-h-[95vh] flex flex-col justify-center pt-32 pb-24`} aria-label="Hero Section">
+      {/* Hero Section */}
+      <section className={`relative min-h-[90vh] flex flex-col justify-center pt-32 pb-24`} aria-label="Hero Section">
           <div className={`${containerClass} w-full relative z-10 flex flex-col items-center text-center`}>
               
               <div className="mb-10 animate-fade-up opacity-0" style={{ animationDelay: '0.1s' }} aria-hidden="true">
@@ -137,7 +140,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart, onUpload, use
                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#34A853]"></span>
                      </span>
                      <span className="text-[11px] font-mono font-bold uppercase tracking-widest text-[#444746]">
-                         AI Active
+                         System Online
                      </span>
                   </div>
               </div>
@@ -172,6 +175,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart, onUpload, use
           </div>
       </section>
 
+      {/* How it Works Section */}
       <section className="py-24 md:py-32" aria-labelledby="how-it-works-title">
           <div className={containerClass}>
               <div className={`border border-[#E3E3E3] ${sectionRadius} p-8 md:p-16`}>
@@ -203,8 +207,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart, onUpload, use
           </div>
       </section>
       
+      {/* Decorative Animation */}
       <section className="pb-24 md:pb-32" aria-hidden="true">
-           {/* Decorative Animation Section - Hidden from Screen Readers */}
            <div className={containerClass}>
               <div className={`w-full relative aspect-[16/9] bg-[#F0F4F9] ${sectionRadius} overflow-hidden shadow-2xl border-[1px] border-[#E3E3E3] group isolate`}>
                 <style>{`
@@ -363,6 +367,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart, onUpload, use
            </div>
       </section>
 
+      {/* Build Options Section */}
       <section className="px-4 md:px-6 py-12" aria-labelledby="start-section-title">
           <div className={`bg-[#F0F4F9] ${sectionRadius} py-24 md:py-32 overflow-hidden relative`}>
             <div className="absolute inset-0 opacity-40 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#CBD5E1 1px, transparent 1px)', backgroundSize: '40px 40px' }} aria-hidden="true"></div>
@@ -450,6 +455,91 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart, onUpload, use
 
                 </div>
             </div>
+          </div>
+      </section>
+
+      {/* Trust & Safety Section */}
+      <section className="py-24 bg-white" aria-labelledby="trust-section-title">
+          <div className={containerClass}>
+              <div className={`border border-[#E3E3E3] ${sectionRadius} p-8 md:p-12`}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 lg:gap-8">
+                      
+                      <div className={`lg:col-span-4 group relative bg-[#F0F4F9] ${cardRadius} p-10 overflow-hidden hover:shadow-xl transition-all duration-500 cursor-default flex flex-col h-full min-h-[400px]`}>
+                           <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-100 transition-opacity duration-500 text-[#EA4335] transform translate-x-1/4 -translate-y-1/4">
+                              <ShieldCheck size={180} strokeWidth={1} />
+                           </div>
+                           <div className="relative z-10 flex flex-col h-full justify-between">
+                               <div>
+                                   <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center text-[#EA4335] mb-8 shadow-sm">
+                                       <ShieldCheck size={28} />
+                                   </div>
+                                   <h3 className="text-xs font-bold text-[#5E5E5E] tracking-widest uppercase mb-3">Safety</h3>
+                                   <p className="text-4xl lg:text-5xl font-display font-medium text-[#1F1F1F] mb-6 tracking-tight">Trust.</p>
+                                   <p className="text-[#444746] text-xl leading-relaxed max-w-[90%] font-light">
+                                      NAVA warns you about unsafe builds early. No guessing.
+                                    </p>
+                               </div>
+                               <div className="w-full h-1.5 bg-[#E3E3E3] rounded-full mt-10 overflow-hidden">
+                                   <div className="h-full bg-[#EA4335] w-1/3 group-hover:w-full transition-all duration-1000 ease-out"></div>
+                               </div>
+                           </div>
+                      </div>
+
+                      <div className={`lg:col-span-4 group relative bg-[#F0F4F9] ${cardRadius} p-10 overflow-hidden hover:shadow-xl transition-all duration-500 cursor-default flex flex-col h-full min-h-[400px]`}>
+                           <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-gradient-to-tr from-[#4285F4] to-[#9B72CB] rounded-full blur-[80px] opacity-0 group-hover:opacity-40 transition-opacity duration-700"></div>
+                           
+                           <div className="relative z-10 flex flex-col h-full justify-between">
+                               <div>
+                                   <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center text-[#0B57D0] mb-8 shadow-sm">
+                                       <Cpu size={28} />
+                                   </div>
+                                   <h3 className="text-xs font-bold text-[#5E5E5E] tracking-widest uppercase mb-3">Powered by AI</h3>
+                                   <p className="text-4xl lg:text-5xl font-display font-medium text-[#1F1F1F] mb-6 tracking-tight">Expert<br/><span className="bg-gradient-to-r from-[#4285F4] to-[#9B72CB] bg-clip-text text-transparent">Gemini.</span></p>
+                                   <p className="text-[#444746] text-xl leading-relaxed font-light">
+                                      Built on Gemini AI to provide clear steps for any material.
+                                    </p>
+                               </div>
+                               <div className="flex gap-2 items-center mt-10">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-[#4285F4] animate-bounce"></div>
+                                    <div className="w-2.5 h-2.5 rounded-full bg-[#EA4335] animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                                    <div className="w-2.5 h-2.5 rounded-full bg-[#FBBC04] animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                                    <div className="w-2.5 h-2.5 rounded-full bg-[#34A853] animate-bounce" style={{animationDelay: '0.3s'}}></div>
+                               </div>
+                           </div>
+                      </div>
+
+                      <div className={`lg:col-span-4 group relative bg-[#1F1F1F] ${cardRadius} p-10 overflow-hidden hover:shadow-xl transition-all duration-500 text-white cursor-default flex flex-col h-full min-h-[400px]`}>
+                           <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#34A853] to-[#34A853] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left"></div>
+                           
+                           <div className="relative z-10 flex flex-col h-full">
+                               <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center text-[#34A853] mb-8 backdrop-blur-sm">
+                                   <Target size={28} />
+                               </div>
+                               <h3 className="text-xs font-bold text-white/60 tracking-widest uppercase mb-3">Clear Goals</h3>
+                               <p className="text-4xl lg:text-5xl font-display font-medium text-white mb-8 tracking-tight">Simple results.</p>
+                               
+                               <div className="space-y-8 mt-auto">
+                                   <div className="flex gap-4">
+                                       <div className="mt-1 min-w-[24px]"><Check size={24} className="text-[#34A853]" strokeWidth={3} /></div>
+                                       <div>
+                                           <div className="text-xs font-bold uppercase tracking-wider text-[#34A853] mb-1">We are</div>
+                                           <div className="text-xl font-light text-white leading-tight">Your helpful building assistant.</div>
+                                       </div>
+                                   </div>
+                                   <div className="w-full h-px bg-white/10"></div>
+                                   <div className="flex gap-4 opacity-50 group-hover:opacity-100 transition-opacity duration-500">
+                                       <div className="mt-1 min-w-[24px]"><X size={24} className="text-[#EA4335]" strokeWidth={3} /></div>
+                                       <div>
+                                           <div className="text-xs font-bold uppercase tracking-wider text-[#EA4335] mb-1">We are not</div>
+                                           <div className="text-xl font-light text-white leading-tight">A chatbot or photo filter.</div>
+                                       </div>
+                                   </div>
+                               </div>
+                           </div>
+                      </div>
+
+                  </div>
+              </div>
           </div>
       </section>
 
