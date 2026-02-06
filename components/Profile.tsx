@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { UserProfile, ProjectHistory } from '../types';
-import { ArrowLeft, Award, FolderOpen, Calendar, LogOut, MapPin, Mail, ChevronRight, Star, TrendingUp, Sparkles, LayoutGrid } from 'lucide-react';
+import { ArrowLeft, Award, FolderOpen, Calendar, LogOut, MapPin, Mail, ChevronRight, Star, TrendingUp, Sparkles, LayoutGrid, Phone } from 'lucide-react';
 
 interface ProfileProps {
   user: UserProfile;
@@ -72,10 +72,17 @@ export const Profile: React.FC<ProfileProps> = ({ user, history, onBack, onLogou
                             {user.name}
                         </h1>
                         <div className="space-y-2 text-[#5E5E5E]">
-                             <div className="flex items-center justify-center md:justify-start gap-2 text-sm">
-                                <Mail size={14} className="opacity-50" />
-                                <span>{user.email}</span>
-                             </div>
+                             {user.email ? (
+                                <div className="flex items-center justify-center md:justify-start gap-2 text-sm">
+                                    <Mail size={14} className="opacity-50" />
+                                    <span>{user.email}</span>
+                                </div>
+                             ) : (
+                                <div className="flex items-center justify-center md:justify-start gap-2 text-sm">
+                                    <Phone size={14} className="opacity-50" />
+                                    <span>{user.phoneNumber}</span>
+                                </div>
+                             )}
                              <div className="flex items-center justify-center md:justify-start gap-2 text-sm">
                                 <MapPin size={14} className="opacity-50" />
                                 <span>{user.country}</span>

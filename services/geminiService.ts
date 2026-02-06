@@ -13,6 +13,7 @@ const cleanJSON = (text: string): string => {
 
 /**
  * Advanced Image Processing: Optimized for high-fidelity vision ingestion.
+ * Increased resolution limit for better detection.
  */
 const processImage = async (base64Str: string): Promise<string> => {
   if (base64Str.length < 1024 * 512) return base64Str;
@@ -22,7 +23,7 @@ const processImage = async (base64Str: string): Promise<string> => {
     img.crossOrigin = "anonymous";
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      const MAX_SIZE = 1600; 
+      const MAX_SIZE = 1920; // Increased for better detail detection
       let width = img.width;
       let height = img.height;
 
@@ -45,7 +46,7 @@ const processImage = async (base64Str: string): Promise<string> => {
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', 0.9));
+        resolve(canvas.toDataURL('image/jpeg', 0.95)); // Higher quality compression
       } else {
         resolve(base64Str);
       }
@@ -63,7 +64,7 @@ const parseDataUrl = (dataUrl: string) => {
 };
 
 /**
- * Precision Materials Audit: Identifies object with simple terms.
+ * Precision Materials Audit: Identifies object with simple, understandable terms.
  */
 export const identifyObject = async (imageSrc: string): Promise<string> => {
   const ai = getAI();
@@ -75,7 +76,15 @@ export const identifyObject = async (imageSrc: string): Promise<string> => {
     contents: [{
       parts: [
         { inlineData: { mimeType, data } },
-        { text: "Identify the main item in this photo. Is it a material (like Paper, Wood), an electronic component, code on a screen, or a UI design? Return ONLY the specific name (e.g., 'Notebook Paper', 'React Code', 'Arduino Uno', 'Website Design')." }
+        { text: `
+          Look at this image. Identify the main object.
+          
+          RULES:
+          1. Use SIMPLE, EVERYDAY English. (e.g., say "Cardboard Box" instead of "Corrugated Container").
+          2. Avoid technical model numbers or scientific names.
+          3. Return ONLY the name. Nothing else.
+          ` 
+        }
       ]
     }]
   });
@@ -94,44 +103,42 @@ export const generateSuggestions = async (objectName: string, scannedImage: stri
   const scanned = parseDataUrl(processedScanned);
   
   // Contextual prompt setup
-  parts.push({ text: `I have scanned this: "${objectName}".` });
+  parts.push({ text: `I have this item: "${objectName}".` });
   parts.push({ inlineData: { mimeType: scanned.mimeType, data: scanned.data } });
 
-  let systemInstruction = `You are a Master Maker and Creative Engineer.
-  Your goal is to suggest 4 distinct project ideas based on the scanned item.
+  let systemInstruction = `You are a creative, fun workshop buddy.
+  Goal: Suggest 4 cool, distinct project ideas for this item.
   
-  Create suggestions that span 4 difficulty levels:
-  1. Easy / Quick Start
-  2. Medium / Skill Builder
-  3. Hard / Advanced
-  4. Expert / Tech-Integrated
+  DIFFICULTY LEVELS:
+  1. Easy (15 mins)
+  2. Medium (1 hour)
+  3. Hard (Weekend project)
+  4. Expert (Tech-integrated)
 
-  Output Requirements:
-  - Use simple, exciting English.
-  - Max 5 words per suggestion.
+  LANGUAGE RULES:
+  - Use extremely SIMPLE, EXCITING English.
+  - No complicated words.
+  - Max 5 words per title.
   - Return purely a JSON array of 4 strings.`;
 
   if (referenceImage) {
     const processedRef = await processImage(referenceImage);
     const ref = parseDataUrl(processedRef);
-    parts.push({ text: `Target Goal Reference Image:` });
+    parts.push({ text: `I want to make something like this:` });
     parts.push({ inlineData: { mimeType: ref.mimeType, data: ref.data } });
     
     // Override instruction if reference exists
-    systemInstruction = `You are a Creative Technologist.
+    systemInstruction = `You are a helpful maker.
     The user has a Source Material (first image) and a Target Goal (second image).
     
-    1. ANALYZE the Target Goal image. What object is it? (e.g. Paper Airplane).
-    2. GENERATE 4 distinct, creative Project Names for this object.
+    1. Look at the Target Goal. What is it?
+    2. Suggest 4 creative names for this project using the user's material.
     
     RULES:
-    - RETURN ONLY NOUN PHRASES (e.g. "Supersonic Glider").
-    - DO NOT return verbs or instructions (e.g. "Fold the paper" is BANNED).
-    - If it looks like steps, you failed.
-    - Max 4 words per title.
-    
-    Example Output:
-    ["Delta Wing Interceptor", "Long-Range Glider", "Stunt Plane Mark IV", "Classic Dart"]`;
+    - Use Noun Phrases only (e.g., "Fast Glider").
+    - No verbs or instructions in the title.
+    - Simple English only.
+    - JSON Array of 4 strings.`;
   }
 
   const response = await ai.models.generateContent({
@@ -158,7 +165,7 @@ export const generateSuggestions = async (objectName: string, scannedImage: stri
 };
 
 /**
- * Gemini 3 Pro Plan Engine.
+ * Gemini 3 Pro Plan Engine with Thinking Config.
  */
 export const generateCustomPlan = async (
   scannedImage: string,
@@ -170,33 +177,30 @@ export const generateCustomPlan = async (
   const scanned = parseDataUrl(processedScanned);
   
   const parts: any[] = [
-    { text: "Source material what I have now:" },
+    { text: "Here is what I have (Source Material):" },
     { inlineData: { mimeType: scanned.mimeType, data: scanned.data } }
   ];
 
   if (referenceImage) {
     const processedRef = await processImage(referenceImage);
     const ref = parseDataUrl(processedRef);
-    parts.push({ text: "Reference Target Goal:" });
-    parts.push({ inlineData: { mimeType: ref.mimeType, data: ref.data } });
+    parts.push({ text: "Here is what I want to make (Target Goal):" },
+    { inlineData: { mimeType: ref.mimeType, data: ref.data } });
   }
 
   parts.push({
-    text: `Command: "${userCommand}"
+    text: `My Goal: "${userCommand}"
     
-    You are a Master Maker. Build a highly detailed step-by-step plan.
-    
-    CRITICAL INSTRUCTION GUIDELINES:
-    1. Break down steps so a beginner cannot fail. If a step involves complex folding or wiring, split it.
-    2. Physical Accuracy: Be extremely precise about where to fold, cut, or connect.
-    3. Use simple, direct English. No fluff.
-    4. Verification: For every step, describe exactly what the user should visually see to know they did it right.
-    
-    Context:
-    - If code/software: Focus on logic, UI, and testing steps.
-    - If design/UI: Focus on layout, colors, and assets.
-    - If electronics/hardware: Focus on wiring, components, and code.
-    - If physical: Focus on tools, measuring, and assembly.
+    You are a Master Teacher for beginners.
+    Create a step-by-step build plan.
+
+    CRITICAL INSTRUCTIONS:
+    1. **LANGUAGE**: Use Simple English (Grade 5 level). Short sentences. No jargon.
+    2. **SAFETY**: If the user asks for something dangerous (e.g., modifying mains voltage, weapons), politely refuse in the 'analysis' section and suggest a safe version.
+    3. **CLARITY**: Break complex tasks into tiny, easy steps.
+    4. **VERIFICATION**: Describe exactly what to look for to know a step is done.
+
+    Your thinking process should plan the physical constraints before generating the JSON.
     `
   });
 
@@ -204,13 +208,15 @@ export const generateCustomPlan = async (
     model: 'gemini-3-pro-preview',
     contents: [{ parts }],
     config: {
+      // Enable thinking for better reasoning about physical tasks
+      thinkingConfig: { thinkingBudget: 2048 },
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
         properties: {
           title: { type: Type.STRING },
           description: { type: Type.STRING },
-          analysis: { type: Type.STRING },
+          analysis: { type: Type.STRING, description: "Simple explanation of what we will do" },
           feasibility: {
             type: Type.OBJECT,
             properties: {
@@ -234,8 +240,8 @@ export const generateCustomPlan = async (
               type: Type.OBJECT,
               properties: {
                 title: { type: Type.STRING },
-                description: { type: Type.STRING, description: "Detailed instruction for this step" },
-                verificationCriteria: { type: Type.STRING, description: "Visual check to confirm step completion" }
+                description: { type: Type.STRING, description: "Step instruction in simple English" },
+                verificationCriteria: { type: Type.STRING, description: "Visual check like 'It should look like...'" }
               },
               required: ["title", "description", "verificationCriteria"]
             }
@@ -263,14 +269,18 @@ export const verifyStepCompletion = async (
   const processedImage = await processImage(userImage);
   const { mimeType, data } = parseDataUrl(processedImage);
 
-  const prompt = `Act as a helpful project checker.
-  Goal: "${stepTitle}"
+  const prompt = `Act as a friendly, encouraging teacher.
+  
+  Goal Step: "${stepTitle}"
   Instruction: "${stepInstruction}"
   
-  Check the photo. Are they done?
-  Use VERY SIMPLE English. 
-  If done, say: "Perfect! Ready for next step."
-  If not done, say why in 1 simple sentence.`;
+  Look at the photo. Did the user complete this step?
+  
+  Output Rules:
+  1. Use Very Simple English.
+  2. Be kind and helpful.
+  3. If not done, explain clearly what is missing in one sentence.
+  `;
 
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
@@ -293,7 +303,7 @@ export const verifyStepCompletion = async (
     }
   });
 
-  const text = cleanJSON(response.text || '{"success":false, "feedback":"Please show me the work clearly."}');
+  const text = cleanJSON(response.text || '{"success":false, "feedback":"I could not see the work clearly. Please try again."}');
   return JSON.parse(text);
 };
 
@@ -302,11 +312,11 @@ export const askStepQuestion = async (project: string, stepTitle: string, stepIn
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: [{ text: `
-      Context: User is building "${project}".
+      You are a helper for a DIY project "${project}".
       Current Step: "${stepTitle}" - "${stepInstruction}".
       User Question: "${question}"
       
-      Answer the user's question specifically about this step. Keep it encouraging, conversational, short, and helpful. Max 3 sentences.
+      Answer in Simple English. Keep it short (max 2 sentences). Be encouraging.
     ` }]
   });
   return response.text?.trim() || "I'm not sure, but try following the instructions carefully.";
@@ -317,7 +327,7 @@ export const translateContent = async (text: string, targetLang: string): Promis
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: [{ text: `Translate the following text to ${targetLang}. Return ONLY the translation, no explanation. Text: "${text}"` }]
+        contents: [{ text: `Translate to ${targetLang}. Keep it simple and natural. Text: "${text}"` }]
     });
     return response.text?.trim() || text;
 };

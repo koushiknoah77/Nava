@@ -83,20 +83,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart, onUpload, use
           <div className="absolute bottom-[-10%] right-[-5%] w-[30vw] h-[30vw] rounded-full bg-gradient-to-tl from-[#FCE8E6]/40 to-transparent blur-[100px] opacity-60"></div>
       </div>
 
-      <nav aria-label="Main Navigation" className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)] pointer-events-none ${scrolled ? 'py-4' : 'py-8'}`}>
-        <div className={`${containerClass} flex items-center justify-between pointer-events-auto`}>
-            
-            <div className={`flex items-center gap-3 transition-all duration-500 ${scrolled ? 'bg-white/80 backdrop-blur-xl shadow-sm pl-4 pr-6 py-3 rounded-full border border-white/20' : ''}`}>
-               <div className="w-10 h-10 bg-[#1F1F1F] rounded-full flex items-center justify-center text-white shadow-md" aria-hidden="true">
+      <nav aria-label="Main Navigation" className={`fixed top-0 w-full z-50 transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)] pointer-events-none flex justify-center ${scrolled ? 'pt-4' : 'pt-8'}`}>
+        <div className={`pointer-events-auto transition-all duration-500 ease-[cubic-bezier(0.2,0,0,1)] flex items-center justify-between ${
+            scrolled 
+            ? 'w-[calc(100%-2rem)] max-w-[1000px] bg-white/70 backdrop-blur-xl shadow-premium border border-white/50 rounded-full px-5 py-3 mx-4' 
+            : 'w-full max-w-[1440px] px-6 md:px-12 bg-transparent border-transparent'
+        }`}>
+            {/* Logo Section */}
+            <div className="flex items-center gap-3">
+               <div className="w-10 h-10 bg-[#1F1F1F] rounded-full flex items-center justify-center text-white shadow-md shrink-0" aria-hidden="true">
                    <Sparkles size={18} fill="currentColor" />
                </div>
                <div className="flex flex-col">
                    <span className="text-xl font-display font-medium text-[#1F1F1F] tracking-tight leading-none">NAVA</span>
-                   <span className="hidden sm:block text-[10px] font-mono font-medium uppercase tracking-widest text-[#5E5E5E] leading-none mt-1">AI Assistant</span>
+                   <span className={`text-[10px] font-mono font-medium uppercase tracking-widest text-[#5E5E5E] leading-none mt-1 transition-all duration-300 ${scrolled ? 'h-0 opacity-0 overflow-hidden' : 'h-auto opacity-100'}`}>
+                       AI Assistant
+                   </span>
                </div>
             </div>
             
-            <div className="flex items-center gap-4">
+            {/* Actions Section */}
+            <div className="flex items-center gap-3 md:gap-4 pl-4">
                 {user && (
                     <button 
                         onClick={onProfileClick}
@@ -109,7 +116,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart, onUpload, use
                 <button 
                     onClick={onStart}
                     aria-label="Start App"
-                    className={`group relative overflow-hidden bg-[#1A73E8] text-white px-7 py-3.5 rounded-full text-sm font-medium hover:shadow-lg transition-all duration-300 active:scale-95 ${scrolled ? 'mr-0' : ''}`}
+                    className={`group relative overflow-hidden bg-[#1A73E8] text-white px-6 py-2.5 rounded-full text-sm font-medium hover:shadow-lg transition-all duration-300 active:scale-95 whitespace-nowrap`}
                 >
                     <span className="relative z-10 flex items-center gap-2">
                         {user ? 'New Project' : 'Join / Start'} <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" aria-hidden="true" />
@@ -137,7 +144,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart, onUpload, use
 
               <h1 className="text-[13vw] lg:text-[160px] leading-[0.9] font-display font-medium text-[#1F1F1F] tracking-tighter mb-12 animate-fade-up opacity-0" style={{ animationDelay: '0.2s' }}>
                   Build together<br />
-                  <span className="gemini-gradient-text">with NAVA.</span>
+                  <span className="bg-[linear-gradient(90deg,#4285F4,#EA4335,#FBBC04,#34A853,#4285F4)] bg-[length:200%_auto] bg-clip-text text-transparent animate-shimmer">with NAVA.</span>
               </h1>
               
               <div className="flex flex-col items-center gap-12 animate-fade-up opacity-0 max-w-4xl mx-auto" style={{ animationDelay: '0.4s' }}>
@@ -442,91 +449,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart, onUpload, use
                     </button>
 
                 </div>
-            </div>
-          </div>
-      </section>
-
-      <section className="py-24 bg-white" aria-labelledby="features-title">
-          <div className={containerClass}>
-            <div className={`border border-[#E3E3E3] ${sectionRadius} p-8 md:p-16`}>
-              <h2 id="features-title" className="sr-only">Features</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 lg:gap-8">
-                  
-                  <div className={`lg:col-span-4 group relative bg-[#F0F4F9] ${cardRadius} p-10 overflow-hidden hover:shadow-xl transition-all duration-500 cursor-default flex flex-col h-full min-h-[400px] border border-[#E3E3E3]`}>
-                       <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-100 transition-opacity duration-500 text-[#EA4335] transform translate-x-1/4 -translate-y-1/4" aria-hidden="true">
-                          <ShieldCheck size={180} strokeWidth={1} />
-                       </div>
-                       <div className="relative z-10 flex flex-col h-full justify-between">
-                           <div>
-                               <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center text-[#EA4335] mb-8 shadow-sm">
-                                   <ShieldCheck size={28} />
-                               </div>
-                               <h3 className="text-xs font-bold text-[#5E5E5E] tracking-widest uppercase mb-3">Safety</h3>
-                               <p className="text-4xl lg:text-5xl font-display font-medium text-[#1F1F1F] mb-6 tracking-tight">Trust.</p>
-                               <p className="text-[#444746] text-xl leading-relaxed max-w-[90%] font-light">
-                                  NAVA warns you about unsafe builds early. No guessing.
-                                </p>
-                           </div>
-                           <div className="w-full h-1.5 bg-[#E3E3E3] rounded-full mt-10 overflow-hidden" aria-hidden="true">
-                               <div className="h-full bg-[#EA4335] w-1/3 group-hover:w-full transition-all duration-1000 ease-out"></div>
-                           </div>
-                       </div>
-                  </div>
-
-                  <div className={`lg:col-span-4 group relative bg-[#F0F4F9] ${cardRadius} p-10 overflow-hidden hover:shadow-xl transition-all duration-500 cursor-default flex flex-col h-full min-h-[400px] border border-[#E3E3E3]`}>
-                       <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-gradient-to-tr from-[#4285F4] to-[#9B72CB] rounded-full blur-[80px] opacity-0 group-hover:opacity-40 transition-opacity duration-700" aria-hidden="true"></div>
-                       
-                       <div className="relative z-10 flex flex-col h-full justify-between">
-                           <div>
-                               <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center text-[#0B57D0] mb-8 shadow-sm">
-                                   <Cpu size={28} />
-                               </div>
-                               <h3 className="text-xs font-bold text-[#5E5E5E] tracking-widest uppercase mb-3">Powered by AI</h3>
-                               <p className="text-4xl lg:text-5xl font-display font-medium text-[#1F1F1F] mb-6 tracking-tight">Expert<br/><span className="gemini-gradient-text">Gemini.</span></p>
-                               <p className="text-[#444746] text-xl leading-relaxed font-light">
-                                  Built on Gemini AI to provide clear steps for any material.
-                               </p>
-                           </div>
-                           <div className="flex gap-2 items-center mt-10" aria-hidden="true">
-                                <div className="w-2.5 h-2.5 rounded-full bg-[#4285F4] animate-bounce"></div>
-                                <div className="w-2.5 h-2.5 rounded-full bg-[#EA4335] animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                                <div className="w-2.5 h-2.5 rounded-full bg-[#FBBC04] animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                                <div className="w-2.5 h-2.5 rounded-full bg-[#34A853] animate-bounce" style={{animationDelay: '0.3s'}}></div>
-                           </div>
-                       </div>
-                  </div>
-
-                  <div className={`lg:col-span-4 group relative bg-[#1F1F1F] ${cardRadius} p-10 overflow-hidden hover:shadow-xl transition-all duration-500 text-white cursor-default flex flex-col h-full min-h-[400px]`}>
-                       <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#34A853] to-[#34A853] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left" aria-hidden="true"></div>
-                       
-                       <div className="relative z-10 flex flex-col h-full">
-                           <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center text-[#34A853] mb-8 backdrop-blur-sm">
-                               <Target size={28} />
-                           </div>
-                           <h3 className="text-xs font-bold text-white/60 tracking-widest uppercase mb-3">Clear Goals</h3>
-                           <p className="text-4xl lg:text-5xl font-display font-medium text-white mb-8 tracking-tight">Simple results.</p>
-                           
-                           <div className="space-y-8 mt-auto">
-                               <div className="flex gap-4">
-                                   <div className="mt-1 min-w-[24px]"><Check size={24} className="text-[#34A853]" strokeWidth={3} aria-hidden="true"/></div>
-                                   <div>
-                                       <div className="text-xs font-bold uppercase tracking-wider text-[#34A853] mb-1">We are</div>
-                                       <div className="text-xl font-light text-white leading-tight">Your helpful building assistant.</div>
-                                   </div>
-                               </div>
-                               <div className="w-full h-px bg-white/10" aria-hidden="true"></div>
-                               <div className="flex gap-4 opacity-50 group-hover:opacity-100 transition-opacity duration-500">
-                                   <div className="mt-1 min-w-[24px]"><X size={24} className="text-[#EA4335]" strokeWidth={3} aria-hidden="true"/></div>
-                                   <div>
-                                       <div className="text-xs font-bold uppercase tracking-wider text-[#EA4335] mb-1">We are not</div>
-                                       <div className="text-xl font-light text-white leading-tight">A chatbot or photo filter.</div>
-                                   </div>
-                               </div>
-                           </div>
-                       </div>
-                  </div>
-
-              </div>
             </div>
           </div>
       </section>

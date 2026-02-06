@@ -34,8 +34,9 @@ export enum AnalysisType {
 export interface UserProfile {
   id: string;
   name: string;
-  email: string;     // Added
-  country: string;   // Added
+  email?: string | null;       // Made optional for Phone Auth, allow null for Firestore
+  phoneNumber?: string | null; // Added for Phone Auth, allow null for Firestore
+  country: string;
   skillLevel: SkillLevel;
   joinedDate: string;
   color: string;

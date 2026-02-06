@@ -137,8 +137,6 @@ export const GuideSystem: React.FC<GuideSystemProps> = ({ data, originalImage, o
   const stopLiveSession = () => {
     if (frameIntervalRef.current) clearInterval(frameIntervalRef.current);
     if (sessionRef.current) {
-        // No formal close method in the minimal example, but we stop sending.
-        // We can just release refs.
         sessionRef.current = null;
     }
     if (inputAudioContextRef.current) inputAudioContextRef.current.close();
@@ -183,12 +181,17 @@ export const GuideSystem: React.FC<GuideSystemProps> = ({ data, originalImage, o
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         
         // System instruction to guide the AI
-        const sysInstruction = `You are a helpful building assistant. 
+        const sysInstruction = `You are a helpful, kind building assistant.
         Current Project: "${data.projectName}".
-        Current Step: "${step.title}" - "${step.instruction}".
-        Your goal is to look at the user's video feed and help them complete this specific step.
-        Be brief, encouraging, and visually observant.
-        If they finish, tell them "Good job".`;
+        Current Step: "${step.title}".
+        Instruction: "${step.instruction}".
+        
+        YOUR GOAL: Watch the video feed and help the user.
+        RULES:
+        1. Speak in SHORT, SIMPLE sentences. Easy English.
+        2. Be encouraging (e.g. "That looks great!", "Try moving it to the left").
+        3. Avoid complex words.
+        4. If they finish the step, say "Good job" and wait.`;
 
         const sessionPromise = ai.live.connect({
             model: 'gemini-2.5-flash-native-audio-preview-12-2025',

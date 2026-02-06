@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { AppView, PlanData, GuideData, UserProfile, ProjectHistory } from './types';
+import { AppView, PlanData, GuideData, UserProfile, ProjectHistory, SkillLevel } from './types';
 import { LandingPage } from './components/LandingPage';
 import { CameraScan } from './components/CameraScan';
 import { IntentSelection } from './components/IntentSelection';
@@ -13,6 +13,9 @@ import { Profile } from './components/Profile';
 import { ToastProvider, useToast } from './components/Toast';
 import { identifyObject, generateCustomPlan } from './services/geminiService';
 import { storageService } from './services/storageService';
+import { authService } from './services/authService';
+import { auth } from './services/firebase'; 
+import { onAuthStateChanged } from 'firebase/auth';
 
 const AppContent: React.FC = () => {
   const [view, setView] = useState<AppView>(AppView.LANDING);
@@ -26,16 +29,63 @@ const AppContent: React.FC = () => {
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [guideData, setGuideData] = useState<GuideData | null>(null);
   const [loadingMsg, setLoadingMsg] = useState<string>('');
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
   
   const { showToast } = useToast();
 
   useEffect(() => {
-    // Load User and History on Mount
-    const loadedUser = storageService.getUser();
-    if (loadedUser) {
-      setUser(loadedUser);
-    }
-    setHistory(storageService.getHistory());
+    // This listener handles the initial page load and any auth changes
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      try {
+        setIsAuthChecking(true);
+        
+        if (firebaseUser) {
+          // If logged in, verify email status
+          if (firebaseUser.emailVerified) {
+             // 1. Try to fetch rich profile from Firestore
+             const profile = await authService.getUserProfile(firebaseUser.uid);
+             
+             if (profile) {
+               setUser(profile);
+               storageService.saveUser(profile);
+             } else {
+               // 2. Fallback: Create a profile from Auth data if Firestore failed/empty
+               const fallbackProfile: UserProfile = {
+                  id: firebaseUser.uid,
+                  name: firebaseUser.displayName || 'Builder',
+                  email: firebaseUser.email,
+                  country: 'Unknown',
+                  skillLevel: SkillLevel.BEGINNER,
+                  joinedDate: new Date().toISOString(),
+                  color: 'bg-blue-600'
+               };
+               setUser(fallbackProfile);
+               storageService.saveUser(fallbackProfile);
+             }
+          } else {
+             // Email NOT verified yet
+             // We keep user as null so they see the Landing Page / Login button
+             // The Auth component will handle the "Please verify" messaging if they try to log in
+             setUser(null);
+          }
+        } else {
+          // User is signed out
+          setUser(null);
+          storageService.logout();
+        }
+        
+        setHistory(storageService.getHistory());
+
+      } catch (error) {
+        console.error("Auth State Sync Error", error);
+        setUser(null);
+      } finally {
+        // CRITICAL: This ensures the loading spinner ALWAYS disappears
+        setIsAuthChecking(false);
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const changeView = (newView: AppView) => {
@@ -44,16 +94,13 @@ const AppContent: React.FC = () => {
   };
 
   const handleAuthComplete = (newUser: UserProfile) => {
-    storageService.saveUser(newUser);
     setUser(newUser);
-    // Redirect to Landing Page so user can choose between Camera or Upload
     changeView(AppView.LANDING);
     showToast(`Welcome, ${newUser.name}!`, 'success');
   };
 
-  const handleLogout = () => {
-    storageService.logout();
-    setUser(null);
+  const handleLogout = async () => {
+    await authService.logout();
     changeView(AppView.LANDING);
     showToast('Logged out successfully', 'info');
   };
@@ -67,7 +114,6 @@ const AppContent: React.FC = () => {
   };
 
   const handleCapture = async (imageSrc: string) => {
-    // Ensure user is logged in before capturing (double check logic)
     if (!user) {
         changeView(AppView.AUTH);
         return;
@@ -98,10 +144,9 @@ const AppContent: React.FC = () => {
       const plan = await generateCustomPlan(capturedImage, userCommand, referenceImage);
       setPlanData(plan);
       
-      // Save to History
       const project = storageService.saveProject(plan, capturedImage);
       setCurrentProjectId(project.id);
-      setHistory(storageService.getHistory()); // Update local history state
+      setHistory(storageService.getHistory());
 
       changeView(AppView.BUILD_OVERVIEW);
       showToast("Plan created!", 'success');
@@ -139,6 +184,17 @@ const AppContent: React.FC = () => {
     changeView(AppView.BUILD_OVERVIEW);
   };
 
+  if (isAuthChecking) {
+     return (
+       <div className="min-h-screen bg-white flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+             <div className="w-10 h-10 border-4 border-[#1A73E8] border-t-transparent rounded-full animate-spin"></div>
+             <div className="text-sm font-medium text-gray-500 animate-pulse">Connecting...</div>
+          </div>
+       </div>
+     );
+  }
+
   return (
     <div className="antialiased text-[#1F1F1F] bg-white min-h-screen font-sans selection:bg-[#4285F4]/10 selection:text-[#0B57D0]">
       <CursorTrail />
@@ -157,7 +213,10 @@ const AppContent: React.FC = () => {
         )}
 
         {view === AppView.AUTH && (
-          <Auth onComplete={handleAuthComplete} />
+          <Auth 
+            onComplete={handleAuthComplete} 
+            onBack={() => changeView(AppView.LANDING)}
+          />
         )}
 
         {view === AppView.PROFILE && user && (
