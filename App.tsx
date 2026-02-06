@@ -37,10 +37,6 @@ const AppContent: React.FC = () => {
     // This listener handles the initial page load and any auth changes
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
-        // We do NOT set setIsAuthChecking(true) here. 
-        // Setting it to true would cause the App to render the loading spinner, 
-        // unmounting the Auth component while the user is trying to log in.
-        
         if (firebaseUser) {
           // If logged in, verify email status
           if (firebaseUser.emailVerified) {
@@ -67,13 +63,17 @@ const AppContent: React.FC = () => {
           } else {
              // Email NOT verified yet
              // We keep user as null so they see the Landing Page / Login button
-             // The Auth component will handle the "Please verify" messaging if they try to log in
              setUser(null);
           }
         } else {
-          // User is signed out
-          setUser(null);
-          storageService.logout();
+          // User is signed out of Firebase. Check for Guest session.
+          const stored = storageService.getUser();
+          if (stored && stored.id.startsWith('guest-')) {
+             setUser(stored);
+          } else {
+             setUser(null);
+             storageService.logout();
+          }
         }
         
         setHistory(storageService.getHistory());
@@ -97,12 +97,15 @@ const AppContent: React.FC = () => {
 
   const handleAuthComplete = (newUser: UserProfile) => {
     setUser(newUser);
+    storageService.saveUser(newUser);
     changeView(AppView.LANDING);
     showToast(`Welcome, ${newUser.name}!`, 'success');
   };
 
   const handleLogout = async () => {
+    storageService.logout();
     await authService.logout();
+    setUser(null);
     changeView(AppView.LANDING);
     showToast('Logged out successfully', 'info');
   };

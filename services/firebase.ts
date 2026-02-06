@@ -1,11 +1,13 @@
-
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { initializeFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
-// Your web app's Firebase configuration
-const firebaseConfig = {
+// Declare global variable injected by Vite
+declare const __FIREBASE_CONFIG__: any;
+
+// Use injected config or hardcoded fallback as safety net
+const firebaseConfig = typeof __FIREBASE_CONFIG__ !== 'undefined' ? __FIREBASE_CONFIG__ : {
   apiKey: "AIzaSyA8Xa9HZ8HRuAY6JTqx_zvN3hjT_1YbwQE",
   authDomain: "bloombook.firebaseapp.com",
   projectId: "bloombook",
@@ -13,6 +15,10 @@ const firebaseConfig = {
   messagingSenderId: "1036124411351",
   appId: "1:1036124411351:web:fb498ee0951ae76f3e2792"
 };
+
+if (!firebaseConfig.apiKey) {
+    console.error("Firebase API Key is missing!");
+}
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);

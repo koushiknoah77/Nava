@@ -5,7 +5,7 @@ import { authService } from '../services/authService';
 import { 
   Mail, Lock, User as UserIcon, ArrowRight, Loader2, AlertCircle, 
   CheckCircle, Briefcase, GraduationCap, 
-  Wrench, Sparkles, ArrowLeft, Check
+  Wrench, Sparkles, ArrowLeft, Check, UserCircle
 } from 'lucide-react';
 import { useToast } from './Toast';
 import { User } from 'firebase/auth';
@@ -79,6 +79,20 @@ export const Auth: React.FC<AuthProps> = ({ onComplete, onBack }) => {
     }
   };
 
+  const handleGuestLogin = () => {
+    const guestUser: UserProfile = {
+      id: `guest-${Date.now()}`,
+      name: 'Guest Builder',
+      email: null,
+      country: 'Global',
+      skillLevel: SkillLevel.BEGINNER,
+      joinedDate: new Date().toISOString(),
+      color: 'bg-slate-500'
+    };
+    onComplete(guestUser);
+    showToast("Welcome Guest!", "success");
+  };
+
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) {
@@ -93,7 +107,6 @@ export const Auth: React.FC<AuthProps> = ({ onComplete, onBack }) => {
     } catch (err: any) {
         console.error("Reset Error", err);
         if (err.code === 'auth/user-not-found') {
-             // We still show success to prevent enumeration, but maybe warn in console
              setResetSent(true); 
         } else if (err.code === 'auth/invalid-email') {
              setError("Please enter a valid email address.");
@@ -108,22 +121,18 @@ export const Auth: React.FC<AuthProps> = ({ onComplete, onBack }) => {
   // --- Core Logic: Check Profile & Trigger Onboarding ---
   const handlePostAuth = async (user: User) => {
     try {
-      // Check if profile exists in Firestore
       const profile = await authService.getUserProfile(user.uid);
       
       if (profile && profile.skillLevel) {
-        // User exists and has completed onboarding
         showToast("Welcome back!", "success");
         onComplete(profile);
       } else {
-        // New user OR incomplete profile -> Go to Onboarding
         setTempUser(user);
         setView('onboarding');
-        setLoading(false); // Stop loading to show UI
+        setLoading(false);
       }
     } catch (err) {
       console.error("Profile check failed", err);
-      // Fallback
       setTempUser(user);
       setView('onboarding');
       setLoading(false);
@@ -151,8 +160,10 @@ export const Auth: React.FC<AuthProps> = ({ onComplete, onBack }) => {
         setError("Please verify your email address to log in.");
     } else if (err.code === 'auth/invalid-email') {
         setError("Invalid email address.");
-    } else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+    } else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
         setError("Invalid credentials.");
+    } else if (err.code === 'auth/invalid-credential') {
+        setError("Incorrect email or password. Please check your credentials or create an account.");
     } else if (err.code === 'auth/email-already-in-use') {
         setError("Email already registered.");
     } else if (err.code === 'auth/unauthorized-domain') {
@@ -172,15 +183,15 @@ export const Auth: React.FC<AuthProps> = ({ onComplete, onBack }) => {
 
   // --- Shared Nav Component ---
   const AuthHeader = () => (
-    <nav className="fixed top-6 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
-        <div className="pointer-events-auto w-full max-w-[1000px] bg-white/70 backdrop-blur-xl border border-[#E3E3E3] rounded-full px-5 py-3 flex items-center justify-between shadow-sm transition-all duration-300">
-            <button onClick={onBack} className="flex items-center gap-3 group">
-                <div className="w-9 h-9 bg-[#1F1F1F] rounded-full flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform">
+    <nav className="fixed top-0 left-0 right-0 z-50 flex justify-center p-6 pointer-events-none">
+        <div className="pointer-events-auto w-full max-w-5xl bg-white/80 backdrop-blur-xl border border-white/60 rounded-full px-6 py-3 flex items-center justify-between shadow-sm hover:shadow-md transition-all duration-300">
+            <button onClick={onBack} className="flex items-center gap-3 group opacity-90 hover:opacity-100 transition-opacity">
+                <div className="w-9 h-9 bg-[#1F1F1F] rounded-full flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform">
                     <Sparkles size={16} fill="currentColor" />
                 </div>
                 <div className="flex flex-col text-left">
-                    <span className="text-lg font-display font-medium text-[#1F1F1F] tracking-tight leading-none">NAVA</span>
-                    <span className="text-[9px] font-mono font-medium uppercase tracking-widest text-[#5E5E5E] leading-none mt-1">
+                    <span className="text-base font-display font-medium text-[#1F1F1F] leading-none tracking-tight">NAVA</span>
+                    <span className="text-[10px] font-mono font-bold text-[#5E5E5E] leading-none mt-1 uppercase tracking-widest">
                         AI Assistant
                     </span>
                 </div>
@@ -191,10 +202,10 @@ export const Auth: React.FC<AuthProps> = ({ onComplete, onBack }) => {
                     if (view === 'onboarding') authService.logout();
                     onBack();
                 }}
-                className="w-9 h-9 rounded-full bg-white/50 border border-black/5 flex items-center justify-center text-[#5E5E5E] hover:bg-white hover:text-[#1F1F1F] hover:shadow-md transition-all group"
+                className="w-9 h-9 rounded-full bg-gray-50 border border-black/5 flex items-center justify-center text-[#5E5E5E] hover:bg-gray-100 hover:text-[#1F1F1F] transition-all group"
                 aria-label="Back"
             >
-                <ArrowLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />
+                <ArrowLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
             </button>
         </div>
     </nav>
@@ -205,110 +216,117 @@ export const Auth: React.FC<AuthProps> = ({ onComplete, onBack }) => {
   // 1. Onboarding Screen
   if (view === 'onboarding') {
     return (
-        <div className="min-h-screen flex items-center justify-center p-6 bg-[#F0F4F9] relative overflow-hidden font-sans">
-           {/* Background Ambience matches Profile/Landing */}
-           <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-[#E8F0FE] rounded-full blur-[100px] pointer-events-none opacity-60"></div>
-           <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-[#FCE8E6] rounded-full blur-[100px] pointer-events-none opacity-60"></div>
+        <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#F8F9FA] relative font-sans">
+           {/* Backgrounds */}
+           <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+                <div className="absolute top-[-20%] left-[20%] w-[80vw] h-[80vw] bg-[#E8F0FE] rounded-full blur-[150px] mix-blend-multiply opacity-70"></div>
+                <div className="absolute bottom-[-20%] right-[20%] w-[60vw] h-[60vw] bg-[#FCE8E6] rounded-full blur-[150px] mix-blend-multiply opacity-70"></div>
+           </div>
 
            <AuthHeader />
 
-           <div className="w-full max-w-5xl bg-white rounded-[3rem] shadow-premium border border-white/50 overflow-hidden animate-scale-in flex flex-col md:flex-row relative z-10 mt-16 min-h-[600px]">
+           {/* Central Card - Now Wider and Rectangular */}
+           <div className="w-full max-w-5xl relative z-10 animate-fade-up pt-24 pb-6">
               
-              {/* Left: Decor Panel */}
-              <div className="md:w-[35%] bg-[#18181B] text-white p-10 md:p-14 flex flex-col justify-between relative overflow-hidden">
-                 {/* Abstract Background */}
-                 <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-gradient-to-br from-[#4285F4]/20 to-transparent rounded-full blur-[80px] transform translate-x-1/3 -translate-y-1/3"></div>
-                 <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-gradient-to-tr from-[#EA4335]/20 to-transparent rounded-full blur-[80px] transform -translate-x-1/3 translate-y-1/3"></div>
-                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-
-                 <div className="relative z-10">
-                    <div className="w-16 h-16 bg-white/10 rounded-3xl flex items-center justify-center mb-10 backdrop-blur-md shadow-inner border border-white/10">
-                        <UserIcon size={28} className="text-white" />
-                    </div>
-                    <h2 className="text-4xl font-display font-medium mb-6 tracking-tight">Almost there</h2>
-                    <p className="text-white/70 text-lg leading-relaxed font-light">
-                        Tell us a bit about yourself to personalize your experience.
-                    </p>
-                 </div>
-
-                 <div className="relative z-10 mt-12 flex gap-3">
-                    <div className="w-2.5 h-2.5 rounded-full bg-white opacity-100 shadow-[0_0_10px_rgba(255,255,255,0.5)]"></div>
-                    <div className="w-2.5 h-2.5 rounded-full bg-white/20"></div>
-                    <div className="w-2.5 h-2.5 rounded-full bg-white/20"></div>
-                 </div>
-              </div>
-
-              {/* Right: Form Panel */}
-              <div className="md:w-[65%] p-8 md:p-14 bg-white flex flex-col justify-center">
+              <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-premium border border-white/60 p-8 md:p-12 relative overflow-hidden">
                  
-                 <div className="mb-10">
-                    <label className="text-xs font-bold text-[#5E5E5E] uppercase tracking-[0.2em] block mb-6">I am a...</label>
-                    <div className="flex flex-col gap-4">
-                        {[
-                            { id: SkillLevel.STUDENT, label: 'Student', icon: <GraduationCap size={24}/>, desc: 'Learning & Exploring' },
-                            { id: SkillLevel.MAKER, label: 'Maker / Hobbyist', icon: <Wrench size={24}/>, desc: 'Building for fun' },
-                            { id: 'Professional', label: 'Professional', icon: <Briefcase size={24}/>, desc: 'Work & Engineering' }
-                        ].map((role) => (
-                            <button
-                                key={role.id}
-                                onClick={() => setSelectedRole(role.id as SkillLevel)}
-                                className={`relative flex items-center gap-6 p-5 rounded-[1.5rem] border-2 text-left transition-all duration-300 group ${
-                                    selectedRole === role.id 
-                                    ? 'border-[#1A73E8] bg-[#F8F9FA]' 
-                                    : 'border-transparent bg-white hover:bg-[#F8F9FA] hover:scale-[1.01] shadow-sm hover:shadow-md'
-                                }`}
-                            >
-                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors shrink-0 ${
-                                    selectedRole === role.id ? 'bg-[#1A73E8] text-white shadow-md' : 'bg-[#F1F3F4] text-[#5E5E5E]'
-                                }`}>
-                                    {role.icon}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className={`font-bold text-lg mb-1 ${selectedRole === role.id ? 'text-[#1A73E8]' : 'text-[#1F1F1F]'}`}>{role.label}</div>
-                                    <div className="text-sm text-[#5E5E5E] font-medium opacity-80">{role.desc}</div>
-                                </div>
-                                
-                                <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${
-                                    selectedRole === role.id ? 'border-[#1A73E8] bg-[#1A73E8]' : 'border-[#E3E3E3]'
-                                }`}>
-                                    {selectedRole === role.id && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
-                                </div>
-                            </button>
-                        ))}
-                    </div>
-                 </div>
+                 <div className="grid lg:grid-cols-12 gap-12 md:gap-16 items-start">
+                     
+                     {/* Left Column: Vision & Identity */}
+                     <div className="lg:col-span-5 flex flex-col justify-center h-full pt-4">
+                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-50 border border-yellow-100 text-[10px] font-bold uppercase tracking-widest text-yellow-700 shadow-sm w-fit mb-6">
+                            <Sparkles size={12} fill="currentColor" /> Profile Setup
+                         </div>
+                         
+                         <h2 className="text-5xl md:text-6xl font-display font-medium text-[#1F1F1F] mb-6 tracking-tight leading-[0.95]">
+                            Make it <br/>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-violet-600">yours.</span>
+                         </h2>
+                         
+                         <p className="text-[#5E5E5E] text-lg font-light leading-relaxed mb-10">
+                            Tell us about you. We'll tailor the AI analysis and guides to match your skill level perfectly.
+                         </p>
 
-                 <div className="mb-12">
-                    <label className="text-xs font-bold text-[#5E5E5E] uppercase tracking-[0.2em] block mb-6">Profile Color</label>
-                    <div className="flex flex-wrap gap-4">
-                        {['bg-blue-600', 'bg-emerald-600', 'bg-violet-600', 'bg-amber-500', 'bg-rose-600', 'bg-slate-800'].map(color => (
-                            <button
-                                key={color}
-                                onClick={() => setSelectedColor(color)}
-                                className={`w-14 h-14 rounded-full ${color} transition-all duration-300 flex items-center justify-center relative ${
-                                    selectedColor === color ? 'scale-110 shadow-lg ring-4 ring-offset-2 ring-[#F1F3F4]' : 'hover:scale-105 opacity-80 hover:opacity-100'
-                                }`}
-                            >
-                                {selectedColor === color && <Check size={24} className="text-white" strokeWidth={3} />}
-                            </button>
-                        ))}
-                    </div>
-                 </div>
-
-                 <button 
-                    onClick={completeOnboarding}
-                    disabled={loading}
-                    className="w-full h-16 bg-[#1A73E8] text-white rounded-full font-bold text-lg hover:bg-[#1557B0] transition-all shadow-[0_8px_20px_rgba(26,115,232,0.3)] hover:shadow-[0_12px_24px_rgba(26,115,232,0.4)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-md flex items-center justify-center gap-3 group"
-                 >
-                    {loading ? <Loader2 className="animate-spin" /> : (
-                        <>
-                            Finish Setup 
-                            <div className="bg-white/20 p-1.5 rounded-full group-hover:translate-x-1 transition-transform">
-                                <ArrowRight size={18}/>
+                         {/* Color Selection Moved Here */}
+                         <div className="space-y-4">
+                            <div className="text-[10px] font-bold text-[#9AA0A6] uppercase tracking-[0.2em]">Choose your aura</div>
+                            <div className="flex flex-wrap gap-3">
+                                {['bg-blue-600', 'bg-emerald-500', 'bg-violet-600', 'bg-amber-500', 'bg-rose-500', 'bg-slate-700'].map(color => (
+                                    <button
+                                        key={color}
+                                        onClick={() => setSelectedColor(color)}
+                                        className={`w-10 h-10 rounded-full ${color} transition-all duration-300 flex items-center justify-center relative ${
+                                            selectedColor === color 
+                                            ? 'scale-110 ring-4 ring-white ring-offset-2 ring-offset-gray-100 shadow-md' 
+                                            : 'hover:scale-110 opacity-70 hover:opacity-100'
+                                        }`}
+                                    >
+                                        {selectedColor === color && <Check size={16} className="text-white" strokeWidth={3} />}
+                                    </button>
+                                ))}
                             </div>
-                        </>
-                    )}
-                 </button>
+                         </div>
+                     </div>
+
+                     {/* Right Column: Form Inputs */}
+                     <div className="lg:col-span-7 bg-[#F8F9FA]/50 rounded-[1.5rem] p-6 lg:p-8 border border-white/50">
+                         {/* Archetype Selection */}
+                         <div className="mb-8">
+                             <div className="flex items-center justify-between mb-4">
+                                <div className="text-[10px] font-bold text-[#9AA0A6] uppercase tracking-[0.2em]">Select Archetype</div>
+                                <div className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">Required</div>
+                             </div>
+                             
+                             <div className="grid grid-cols-1 gap-3">
+                                {[
+                                    { id: SkillLevel.STUDENT, label: 'Student', icon: <GraduationCap size={20}/>, desc: 'Learning & Exploring' },
+                                    { id: SkillLevel.MAKER, label: 'Maker', icon: <Wrench size={20}/>, desc: 'Building for fun' },
+                                    { id: 'Professional', label: 'Pro', icon: <Briefcase size={20}/>, desc: 'Work & Engineering' }
+                                ].map((role) => (
+                                    <button
+                                        key={role.id}
+                                        onClick={() => setSelectedRole(role.id as SkillLevel)}
+                                        className={`relative flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 w-full text-left group ${
+                                            selectedRole === role.id 
+                                            ? 'border-blue-500/30 bg-white shadow-md ring-1 ring-blue-500/20' 
+                                            : 'border-transparent bg-white hover:border-[#E3E3E3] hover:shadow-sm'
+                                        }`}
+                                    >
+                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors shrink-0 ${
+                                            selectedRole === role.id ? 'bg-blue-50 text-blue-600' : 'bg-[#F1F3F4] text-[#5E5E5E] group-hover:bg-[#E8F0FE] group-hover:text-[#1A73E8]'
+                                        }`}>
+                                            {role.icon}
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className={`font-bold text-sm ${selectedRole === role.id ? 'text-[#1F1F1F]' : 'text-[#5E5E5E]'}`}>{role.label}</div>
+                                            <div className="text-xs text-[#5E5E5E]/70">{role.desc}</div>
+                                        </div>
+                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${
+                                            selectedRole === role.id ? 'bg-blue-600 text-white shadow-sm' : 'border-2 border-[#E3E3E3]'
+                                        }`}>
+                                            {selectedRole === role.id && <Check size={12} strokeWidth={3} />}
+                                        </div>
+                                    </button>
+                                ))}
+                             </div>
+                         </div>
+
+                         {/* Action Button */}
+                         <button 
+                            onClick={completeOnboarding}
+                            disabled={loading}
+                            className="w-full h-14 bg-[#1F1F1F] text-white rounded-xl font-bold text-sm hover:bg-black transition-all shadow-lg hover:shadow-xl active:scale-[0.99] flex items-center justify-center gap-2 group"
+                         >
+                            {loading ? <Loader2 className="animate-spin" /> : (
+                                <>
+                                    Complete Setup 
+                                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform"/>
+                                </>
+                            )}
+                         </button>
+                     </div>
+
+                 </div>
               </div>
            </div>
         </div>
@@ -317,7 +335,7 @@ export const Auth: React.FC<AuthProps> = ({ onComplete, onBack }) => {
 
   // 2. Main Auth Screen (Login/Register/Forgot)
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-[#F0F4F9] relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-[#F8F9FA] relative overflow-hidden">
       
       {/* Background Blobs */}
       <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-[#E8F0FE] rounded-full blur-[100px] pointer-events-none"></div>
@@ -325,7 +343,7 @@ export const Auth: React.FC<AuthProps> = ({ onComplete, onBack }) => {
       
       <AuthHeader />
 
-      <div className="w-full max-w-[420px] bg-white/80 backdrop-blur-xl rounded-[2.5rem] shadow-premium border border-white/50 overflow-hidden relative z-10 animate-scale-in mt-16">
+      <div className="w-full max-w-[420px] bg-white/80 backdrop-blur-xl rounded-[2.5rem] shadow-premium border border-white/50 overflow-hidden relative z-10 animate-scale-in mt-12">
         
         {/* Navigation / Header inside Card */}
         <div className="p-8 pb-4 text-center">
@@ -377,7 +395,6 @@ export const Auth: React.FC<AuthProps> = ({ onComplete, onBack }) => {
                                 className="w-full h-12 bg-white border border-[#E3E3E3] rounded-xl flex items-center justify-center gap-3 font-medium text-[#1F1F1F] hover:bg-[#F8F9FA] transition-colors mb-6 group relative overflow-hidden"
                             >
                                 <div className="w-5 h-5 relative z-10">
-                                    {/* Simple Google G Icon Representation */}
                                     <svg viewBox="0 0 24 24" className="w-full h-full"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC04"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
                                 </div>
                                 <span className="relative z-10">Continue with Google</span>
@@ -456,8 +473,20 @@ export const Auth: React.FC<AuthProps> = ({ onComplete, onBack }) => {
                         </button>
                     </form>
 
+                    {/* Guest Login Option */}
+                    {view !== 'forgot-pass' && (
+                        <div className="mt-4 pt-4 border-t border-[#F1F3F4]">
+                            <button 
+                                onClick={handleGuestLogin}
+                                className="w-full py-3 text-sm font-bold text-[#5E5E5E] hover:text-[#1F1F1F] hover:bg-[#F8F9FA] rounded-xl transition-colors flex items-center justify-center gap-2"
+                            >
+                                Continue as Guest
+                            </button>
+                        </div>
+                    )}
+
                     {/* Footer Links */}
-                    <div className="mt-8 text-center">
+                    <div className="mt-2 text-center">
                         {view === 'forgot-pass' ? (
                             <button onClick={() => resetView('login')} className="text-sm font-bold text-[#1A73E8] hover:underline">Back to Login</button>
                         ) : (
